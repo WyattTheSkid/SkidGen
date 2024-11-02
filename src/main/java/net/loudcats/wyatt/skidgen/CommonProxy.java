@@ -12,7 +12,7 @@ public class CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
 
-        SkidGen.LOG.info(Config.greeting);
+        //SkidGen.LOG.info(Config.greeting);
         SkidGen.LOG.info("[SkidGen] " + "SkidGen initialized and running on version"+ StringStorage.verNum);
     }
 
