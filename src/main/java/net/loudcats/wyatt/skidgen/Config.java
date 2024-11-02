@@ -1,4 +1,4 @@
-package com.myname.mymodid;
+package net.loudcats.wyatt.skidgen;
 
 import java.io.File;
 

@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.7.11",
+  "package": "net.loudcats.wyatt.skidgen.mixins",
+  "plugin": "net.loudcats.wyatt.skidgen.SkidGenMixinPlugin",
+  "refmap": "mixins.etfuturum.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8",
+  "overwrites": {
+    "conformVisibility": true
+  }
+}
