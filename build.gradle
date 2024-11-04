@@ -2,3 +2,13 @@
 plugins {
     id 'com.gtnewhorizons.gtnhconvention'
 }
+version = '1.0.0' // Replace with your desired version number
+
+// Configure the main jar task
+jar {
+    archiveBaseName.set('SkidGen')
+    archiveVersion.set(version)
+    archiveClassifier.set('') // Main JAR has no classifier
+}
+
+
