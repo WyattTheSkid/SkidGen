@@ -25,6 +25,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.terraingen.ChunkProviderEvent;
 import net.minecraftforge.event.terraingen.PopulateChunkEvent;
 import net.minecraftforge.event.terraingen.TerrainGen;
+import net.loudcats.wyatt.skidgen.SkidGen;
 
 import java.util.List;
 import java.util.Random;
@@ -71,6 +72,9 @@ public class SkidGenChunkGenerator implements IChunkProvider {
     }
 
     public SkidGenChunkGenerator(World world, long seed, boolean generateStructures) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] generating chunks..." );
+        }
         this.world = world;
         this.generateStructures = generateStructures;
         this.worldType = world.getWorldInfo().getTerrainType();
@@ -106,6 +110,9 @@ public class SkidGenChunkGenerator implements IChunkProvider {
     }
 
     public void populateNoise(int chunkX, int chunkZ, Block[] blocks) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Populating noise..." );
+        }
         byte seaLevel = 63;
         this.biomes = this.world.getWorldChunkManager().getBiomesForGeneration(this.biomes, chunkX * 4 - 2, chunkZ * 4 - 2, 10, 10);
         this.generateNoise(chunkX * 4, 0, chunkZ * 4);
@@ -167,8 +174,10 @@ public class SkidGenChunkGenerator implements IChunkProvider {
             }
         }
     }
-
     public void buildSurface(int chunkX, int chunkZ, Block[] blocks, byte[] meta, BiomeGenBase[] biomes) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Building surfacee..." );
+        }
         ChunkProviderEvent.ReplaceBiomeBlocks event = new ChunkProviderEvent.ReplaceBiomeBlocks(this, chunkX, chunkZ, blocks, meta, biomes, this.world);
         MinecraftForge.EVENT_BUS.post(event);
         if (event.getResult() == Event.Result.DENY) return;
@@ -188,6 +197,9 @@ public class SkidGenChunkGenerator implements IChunkProvider {
      * loads or generates the chunk at the chunk location specified
      */
     public Chunk loadChunk(int chunkX, int chunkZ) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Attempting to load chunk..." );
+        }
         return this.provideChunk(chunkX, chunkZ);
     }
 
@@ -196,6 +208,9 @@ public class SkidGenChunkGenerator implements IChunkProvider {
      * specified chunk from the map seed and chunk seed
      */
     public Chunk provideChunk(int chunkX, int chunkZ) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Providing a chunk..." );
+        }
         this.random.setSeed((long) chunkX * 341873128712L + (long) chunkZ * 132897987541L);
         Block[] blocks = new Block[65536];
         byte[] meta = new byte[65536];
@@ -228,6 +243,9 @@ public class SkidGenChunkGenerator implements IChunkProvider {
     }
 
     private void generateNoiseCaves(int chunkX, int chunkZ, Block[] blocks, byte[] meta) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Generating cave noise..." );
+        }
         generateNoiseCavesNoise(chunkX, chunkZ);
 
         for (int noiseX = 0; noiseX < 4; ++noiseX) {
@@ -289,6 +307,9 @@ public class SkidGenChunkGenerator implements IChunkProvider {
     }
 
     private void generateNoiseCavesNoise(int chunkX, int chunkZ) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Generating more cave noise..." );
+        }
         BiomeGenBase[] biomes = null;
         biomes = this.world.getWorldChunkManager().getBiomesForGeneration(biomes, chunkX * 4 - 2, chunkZ * 4 - 2, 10, 10);
         int i = 0;
@@ -326,6 +347,9 @@ public class SkidGenChunkGenerator implements IChunkProvider {
     }
 
     private void generateNoise(int x, int y, int z) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Generating noise..." );
+        }
         this.depthNoises = this.noiseGen6.generateNoiseOctaves(this.depthNoises, x, z, 5, 5, 200.0D, 200.0D, 0.5D);
         this.interpolationNoises = this.interpolationNoise.generateNoiseOctaves(this.interpolationNoises, x, y, z, 5, 33, 5, 8.555150000000001D, 4.277575000000001D, 8.555150000000001D);
         this.lowerInterpolatedNoises = this.field_147431_j.generateNoiseOctaves(this.lowerInterpolatedNoises, x, y, z, 5, 33, 5, 684.412D, 684.412D, 684.412D);
@@ -426,10 +450,16 @@ public class SkidGenChunkGenerator implements IChunkProvider {
     }
 
     public boolean chunkExists(int chunkX, int chunkZ) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Checking if chunk exists..." );
+        }
         return true;
     }
 
     public void populate(IChunkProvider chunkProvider, int chunkX, int chunkZ) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Populating..." );
+        }
         BlockFalling.fallInstantly = true;
         int x = chunkX * 16;
         int z = chunkZ * 16;
@@ -511,6 +541,9 @@ public class SkidGenChunkGenerator implements IChunkProvider {
      * Return true if all chunks have been saved.
      */
     public boolean saveChunks(boolean saveExtra, IProgressUpdate update) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Saving chunks..." );
+        }
         return true;
     }
 
@@ -559,6 +592,9 @@ public class SkidGenChunkGenerator implements IChunkProvider {
     }
 
     public void recreateStructures(int chunkX, int chunkZ) {
+        if (SkidGen.isDebug()) {
+            System.out.println("[SkidGen] Recreating structures..." );
+        }
         if (this.generateStructures) {
             this.mineshaftGenerator.func_151539_a(this, this.world, chunkX, chunkZ, null);
             this.villageGenerator.func_151539_a(this, this.world, chunkX, chunkZ, null);

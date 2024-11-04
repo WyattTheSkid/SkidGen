@@ -26,6 +26,8 @@ import static net.loudcats.wyatt.skidgen.SkidGen.MODID;
     public static WorldType modernWorldGen;
     public static final Logger LOG = LogManager.getLogger(MODID);
 
+    public static boolean debugStatus = true;
+
     @SidedProxy(clientSide = "net.loudcats.wyatt.skidgen.ClientProxy", serverSide = "net.loudcats.wyatt.skidgen.CommonProxy")
     public static CommonProxy proxy;
 
@@ -53,7 +55,10 @@ import static net.loudcats.wyatt.skidgen.SkidGen.MODID;
         proxy.init(event);
         modernWorldGen = new CavesAndCliffsWorldType();
     }
-
+public static boolean isDebug()
+    {
+        return debugStatus;
+    }
     @Mod.EventHandler
     // postInit "Handle interaction with other mods, complete your setup based on this." (Remove if not needed)
     public void postInit(FMLPostInitializationEvent event) {
