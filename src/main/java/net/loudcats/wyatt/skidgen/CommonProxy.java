@@ -13,7 +13,7 @@ public class CommonProxy {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
 
         //SkidGen.LOG.info(Config.greeting);
-        SkidGen.LOG.info("[SkidGen] " + "SkidGen initialized and running on version"+ StringStorage.verNum);
+        SkidGen.LOG.info("[SkidGen] " + "SkidGen initialized and running on version: "+ StringStorage.verNum);
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)
