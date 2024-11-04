@@ -6,7 +6,7 @@ import net.minecraft.world.chunk.IChunkProvider;
 
 public class CavesAndCliffsWorldType extends WorldType {
     public CavesAndCliffsWorldType() {
-        super("generator.1.18");
+        super("1.18");
     }
 
     @Override
