@@ -61,6 +61,9 @@ public class SkidGenChunkGenerator implements IChunkProvider {
     private double[] lowerInterpolatedNoises;
     private double[] upperInterpolatedNoises;
     private double[] depthNoises;
+    //private String generatorOptions;
+    private byte customDepth;//TODO make floats
+    private byte customScale;//TODO make floats
 
     {
         caveGenerator = TerrainGen.getModdedMapGen(caveGenerator, CAVE);
@@ -71,12 +74,13 @@ public class SkidGenChunkGenerator implements IChunkProvider {
         ravineGenerator = TerrainGen.getModdedMapGen(ravineGenerator, RAVINE);
     }
 
-    public SkidGenChunkGenerator(World world, long seed, boolean generateStructures) {
+    public SkidGenChunkGenerator(World world, long seed, boolean generateStructures, String generatorOptions) {
         if (SkidGen.isDebug()) {
             System.out.println("[SkidGen] generating chunks..." );
         }
         this.world = world;
         this.generateStructures = generateStructures;
+        //this.generatorOptions = generatorOptions;
         this.worldType = world.getWorldInfo().getTerrainType();
         this.random = new Random(seed);
         this.field_147431_j = new NoiseGeneratorOctaves(this.random, 16);
@@ -88,7 +92,7 @@ public class SkidGenChunkGenerator implements IChunkProvider {
         this.mobSpawnerNoise = new NoiseGeneratorOctaves(this.random, 8);
         this.terrainNoise = new double[825];
         this.caveNoise = new double[825];
-        this.biomeWeightTable = new float[25];
+        this.biomeWeightTable = new float[25];//parabolicField
         this.noiseCaves = new NoiseCaveGenerator(this.random);
 
         for (int j = -2; j <= 2; ++j) {
@@ -107,6 +111,26 @@ public class SkidGenChunkGenerator implements IChunkProvider {
         this.noiseGen5 = (NoiseGeneratorOctaves) noiseGens[4];
         this.noiseGen6 = (NoiseGeneratorOctaves) noiseGens[5];
         this.mobSpawnerNoise = (NoiseGeneratorOctaves) noiseGens[6];
+
+        String[] genstring = generatorOptions.split("#");
+        if (SkidGen.isDebug())
+            System.out.println("[SkidGen] Generator String: " + generatorOptions);
+
+        // customDepth, -1 is default behavior, -2 is amplified, otherwise value used
+        if (genstring.length > 0 && genstring[0].length() > 0) {
+            customDepth = (byte) Integer.parseInt(genstring[0]);
+            if (customDepth == -2) customDepth = 2;
+        } else
+            customDepth = -1;
+
+        // customScale, -1 is default behavior, -2 is amplified, otherwise value used
+        if (genstring.length > 1 && genstring[1].length() > 0) {
+            customScale = (byte) Integer.parseInt(genstring[1]);
+            if (customScale == -2) customScale = 4;
+        } else
+            customScale = -1;
+
+        // later add options for biome map
     }
 
     public void populateNoise(int chunkX, int chunkZ, Block[] blocks) {
@@ -132,10 +156,22 @@ public class SkidGenChunkGenerator implements IChunkProvider {
                     double x0z1 = this.terrainNoise[ix0z1 + noiseY];
                     double x1z0 = this.terrainNoise[ix1z0 + noiseY];
                     double x1z1 = this.terrainNoise[ix1z1 + noiseY];
-                    double x0z0Add = (this.terrainNoise[ix0z0 + noiseY + 1] - x0z0) * 0.125D;
-                    double x0z1Add = (this.terrainNoise[ix0z1 + noiseY + 1] - x0z1) * 0.125D;
-                    double x1z0Add = (this.terrainNoise[ix1z0 + noiseY + 1] - x1z0) * 0.125D;
-                    double x1z1Add = (this.terrainNoise[ix1z1 + noiseY + 1] - x1z1) * 0.125D;
+
+                    double x0z0Add;
+                    double x0z1Add;
+                    double x1z0Add;
+                    double x1z1Add;
+                    if (false) {//later do generator strings
+                        x0z0Add = (this.terrainNoise[ix0z0 + noiseY + 1] - x0z0) * 0.133D;
+                        x0z1Add = (this.terrainNoise[ix0z1 + noiseY + 1] - x0z1) * 0.133D;
+                        x1z0Add = (this.terrainNoise[ix1z0 + noiseY + 1] - x1z0) * 0.133D;
+                        x1z1Add = (this.terrainNoise[ix1z1 + noiseY + 1] - x1z1) * 0.133D;
+                    } else {//this is original from skidgen
+                        x0z0Add = (this.terrainNoise[ix0z0 + noiseY + 1] - x0z0) * 0.125D;
+                        x0z1Add = (this.terrainNoise[ix0z1 + noiseY + 1] - x0z1) * 0.125D;
+                        x1z0Add = (this.terrainNoise[ix1z0 + noiseY + 1] - x1z0) * 0.125D;
+                        x1z1Add = (this.terrainNoise[ix1z1 + noiseY + 1] - x1z1) * 0.125D;
+                    }
 
                     for (int pieceY = 0; pieceY < 8; ++pieceY) {
                         double z0 = x0z0;
@@ -147,7 +183,7 @@ public class SkidGenChunkGenerator implements IChunkProvider {
                             int index = pieceX + noiseX * 4 << 12 | 0 + noiseZ * 4 << 8 | noiseY * 8 + pieceY;
                             short idAdd = 256;
                             index -= idAdd;
-                            double densityAdd = (z1 - z0) * 0.25D;
+                            double densityAdd = (z1 - z0) * 0.25D;//25
                             double density = z0 - densityAdd;
 
                             for (int pieceZ = 0; pieceZ < 4; ++pieceZ) {
@@ -174,15 +210,16 @@ public class SkidGenChunkGenerator implements IChunkProvider {
             }
         }
     }
-    public void buildSurface(int chunkX, int chunkZ, Block[] blocks, byte[] meta, BiomeGenBase[] biomes) {
+    public void buildSurface(int chunkX, int chunkZ, Block[] blocks, byte[] meta, BiomeGenBase[] biomes) {//replaceBlocksForBiome
         if (SkidGen.isDebug()) {
-            System.out.println("[SkidGen] Building surfacee..." );
+            System.out.println("[SkidGen] Building surface..." );
         }
         ChunkProviderEvent.ReplaceBiomeBlocks event = new ChunkProviderEvent.ReplaceBiomeBlocks(this, chunkX, chunkZ, blocks, meta, biomes, this.world);
         MinecraftForge.EVENT_BUS.post(event);
         if (event.getResult() == Event.Result.DENY) return;
 
         double scale = 0.03125D;
+        //double scale = 2.3D;
         this.surfaceDepthNoises = this.surfaceDepthNoise.func_151599_a(this.surfaceDepthNoises, (double) (chunkX * 16), (double) (chunkZ * 16), 16, 16, scale * 2.0D, scale * 2.0D, 1.0D);
 
         for (int x = 0; x < 16; ++x) {
@@ -209,7 +246,7 @@ public class SkidGenChunkGenerator implements IChunkProvider {
      */
     public Chunk provideChunk(int chunkX, int chunkZ) {
         if (SkidGen.isDebug()) {
-            System.out.println("[SkidGen] Providing a chunk..." );
+            System.out.println("[SkidGen] Providing a chunk at X: " + chunkX*16 + ", Z: " + chunkZ*16);
         }
         this.random.setSeed((long) chunkX * 341873128712L + (long) chunkZ * 132897987541L);
         Block[] blocks = new Block[65536];
@@ -346,7 +383,7 @@ public class SkidGenChunkGenerator implements IChunkProvider {
         }
     }
 
-    private void generateNoise(int x, int y, int z) {
+    private void generateNoise(int x, int y, int z) {//func_147423_a
         if (SkidGen.isDebug()) {
             System.out.println("[SkidGen] Generating noise..." );
         }
@@ -371,12 +408,13 @@ public class SkidGenChunkGenerator implements IChunkProvider {
                         float depthHere = biomegenbase1.rootHeight;
                         float scaleHere = biomegenbase1.heightVariation;
 
-                        if (this.worldType == WorldType.AMPLIFIED && depthHere > 0.0F) {
-                            depthHere = 1.0F + depthHere * 2.0F;
-                            scaleHere = 1.0F + scaleHere * 4.0F;
-                        }
+                        //if (((customDepth == -2 && customHeight == -2) || (this.worldType == WorldType.AMPLIFIED)) && depthHere > 0.0F) {
+                        if (customDepth != -1 && depthHere > 0.0F)
+                            depthHere = 1.0F + depthHere * customDepth;
+                        if (customScale != -1 && depthHere > 0.0F)
+                            scaleHere = 1.0F + scaleHere * customScale;
 
-                        float weightHere = this.biomeWeightTable[x1 + 2 + (z1 + 2) * 5] / (depthHere + 2.0F);
+                        float weightHere = this.biomeWeightTable[x1 + 2 + (z1 + 2) * 5] / (depthHere + 2.0F);//here maybe
 
                         if (biomegenbase1.rootHeight > biomegenbase.rootHeight) {
                             weightHere /= 2.0F;
@@ -392,10 +430,10 @@ public class SkidGenChunkGenerator implements IChunkProvider {
                 depth /= weight;
                 scale = scale * 0.9F + 0.1F;
                 depth = (depth * 4.0F - 1.0F) / 8.0F;
-                double depthNoise = this.depthNoises[horizontalIndex] / 8000.0D;
+                double depthNoise = this.depthNoises[horizontalIndex] / 8000.0D;//here maybe
 
                 if (depthNoise < 0.0D) {
-                    depthNoise = -depthNoise * 0.3D;
+                    depthNoise = -depthNoise * 0.3D;//maybe make a deeper oceans config idk
                 }
 
                 depthNoise = depthNoise * 3.0D - 2.0D;
@@ -414,13 +452,13 @@ public class SkidGenChunkGenerator implements IChunkProvider {
                         depthNoise = 1.0D;
                     }
 
-                    depthNoise /= 8.0D;
+                    depthNoise /= 8.0D;//here probably
                 }
 
                 ++horizontalIndex;
                 double scaledDepth = (double) depth;
                 double scaledScale = (double) scale;
-                scaledDepth += depthNoise * 0.2D;
+                scaledDepth += depthNoise * 0.2D;//oo or here
                 scaledDepth = scaledDepth * 8.5D / 8.0D;
                 double terrainHeight = 8.5D + scaledDepth * 4.0D;
 
